@@ -487,7 +487,7 @@
     <h2 style="text-align: center; font-size: 25px; font-weight: bold; color: #e63946;">
       MODELO SPRINT/STATUS <br>DISPONIBILIDADE
     </h2>
-    <h2 style="text-align: center; font-size: 21px; font-weight: bold; color: #000;">(Versão 2.0)</h2>
+    <h2 style="text-align: center; font-size: 21px; font-weight: bold; color: #000;">(Versão 3.0)</h2>
 
 
     <!-- Seção Dados do Turno -->
@@ -539,16 +539,20 @@
 
     <!-- Seção Em Campo -->
     <div class="section">
-      <h3>🚗Equipes em Campo</h3>
+      <h3>🚗Detalhes Equipes</h3>
       <div class="flex">
         <label for="eqpManCorr">EQP. MANUT. CORRETIVA:</label>
         <input type="text" id="eqpManCorr" maxlength="2" oninput="recalcularEquipesCampo()">
-        <label for="eqpLinhaEmerg">EQP. LINHA VIVA EMERG.:</label>
+        <label for="eqpLinhaEmerg">EQP. LINHA VIVA EMERGENCIA:</label>
         <input type="text" id="eqpLinhaEmerg" maxlength="2" oninput="recalcularEquipesCampo()">
         <label for="eqpPoda">EQP. PODA:</label>
         <input type="text" id="eqpPoda" maxlength="2" oninput="recalcularEquipesCampo()">
         
-        <label for="equipesCampo">SOMA EQUIPES EM CAMPO:</label> 
+        <h3>🚗Equipes em Campo</h3>
+        <label for="equipesCampo"
+       style="color: #e63946; font-style: italic; font-weight: bold;">
+          Soma Total:
+        </label>
         <input type="text" id="equipesCampo" readonly class="readonly">
       </div>
     </div>
@@ -557,7 +561,10 @@
     <div class="section">
       <h3>🚧Contagem Equipes Paradas</h3>
       <div class="flex">
-        <label for="equipesParadas">Total</label>
+        <label for="equipesCampo"
+       style="color: #e63946; font-style: italic; font-weight: bold;">
+          Subtração Total:
+        </label>
         <input type="text" id="equipesParadas" readonly class="readonly">
       </div>
     </div>
@@ -613,10 +620,11 @@
         <input type="text" id="totalNovato" readonly class="readonly">
       </div>
     </div>
-
+    <h2 style="color: #000000; font-size: 22px; text-align: center; margin: 20px 0; border-bottom: 5px solid #000000;">
+        Mensagem de Previsualização
+      </h2>
     <!-- Preview de Mensagem -->
     <div class="section">
-      <h3>📋 Mensagem de Previsualização</h3>
       <textarea id="mensagem" class="preview-box" readonly></textarea>
       <div class="flex">
         <button class="button-accent" onclick="gerarMensagem()">Gerar Mensagem</button>

@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produtividade</title>
+  <link rel="icon" href="sprint.png" type="image/png">
+  <!-- Importa a biblioteca html2pdf -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  <style>
+    /* Bloqueia o pull-to-refresh */
+    html, body {
+      overscroll-behavior-y: none;
+    }
+    /* Global Clock */
+    #global-clock {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      font-family: 'Courier New', Courier, monospace;
+      color: #fff;
+      background-color: #000;
+      padding: 10px;
+      border-radius: 8px;
+      z-index: 1001;
+      display: none; /* exibido somente após iniciar o sprint */
+    }
+    /* Popup padrão (usado para boas-vindas, notificações, etc.) */
+    /* Estilos para Popups (boas-vindas, notificações, cópia, PDF e novos pop-ups) */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      z-index: 1000;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+    .popup-buttons {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+    }
+    .popup-buttons button {
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+    }
+    .yes-button {
+      background-color: #4CAF50;
+      color: #fff;
+    }
+    .no-button {
+      background-color: #f44336;
+      color: #fff;
+    }
+    /* Popup que aparece ao clicar no overlay */
+    #body-popup {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0,0,0,0.85);
+      color: #fff;
+      padding: 15px 20px;
+      border-radius: 8px;
+      z-index: 2500;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    /* Overlay que intercepta cliques em toda a página quando o sprint não é iniciado */
+    #clickOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: transparent;
+      z-index: 2000;
+      display: none;
+    }
+    /* Caixa de Visualização */
+    .preview-box {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: -10px;
+      background-color: #f0f0f0;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    /* Estilos Globais */
+    body { 
+      font-family: Cambria, Cochin, Georgia, Times, sans-serif; 
+    }
+    .container { 
+      width: 90%; 
+      margin: auto; 
+    }
+    textarea { 
+      width: 100%; 
+      height: 469px; 
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    .supervisor-box {
+      width: 100%;
+      padding: 5px;
+      margin: 4px 0;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      background-color: #f0f0f0;
+      text-transform: uppercase;
+    }
+    .supervisor-option,
+    .base-option,
+    .turno-option {
+      padding: 3px 8px;
+      margin: 3px;
+      background-color: rgba(255,255,255,0.9);
+      border: 1px solid rgba(221,221,221,0.89);
+      cursor: pointer;
+      display: inline-block;
+      font-size: 14px;
+      text-align: center;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+    /* ===============================
+         Estilos para Status Produtividade por Equipe
+    ================================ */
+    .equipe {
+      border: 2px solid #000;
+      border-radius: 10px;
+      margin-bottom: 37px;
+      background: #fff;
+      padding: 11px;
+      position: relative;
+    }
+    .chrome-tab {
+      position: absolute;
+      top: -31px;
+      left: 15px;
+      background-color: #000;
+      color: white;
+      padding: 5px 21px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .equipe-header,
+    .equipe-status,
+    .equipe-details {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    /* Cabeçalho: Lead */
+    .equipe-header h3 {
+      margin: 0;
+      background-color: #000;
+      margin-top: -74px;
+      margin-left: 1px;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      color: white;
+      width: 32%;
+      font-size: 22px;
+      text-align: center;
+    }
+    .equipe-header select {
+      margin-left: -125px;
+      margin-top: -5px;
+      padding: 5px;
+    }
+    /* Status: Produtividade */
+    .equipe-status {
+      width: 121%;
+      margin-top: 4px;
+      padding: 0px;
+    }
+    /* Linha de status com os containers de PRODUTIVA e IMPRODUTIVA */
+    .status-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      width: 100%;
+      margin-bottom: 5px;
+    }
+    /* Containers de PRODUTIVA e IMPRODUTIVA */
+    .produtiva-container {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px;
+      margin-top: 10px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      margin-left: -77px;
+      box-sizing: border-box;
+    }
+    .improdutiva-container {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px;
+      margin-top: 10px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      margin-left: -9px;
+      box-sizing: border-box;
+    }
+    .produtiva-container label,
+    .improdutiva-container label {
+      margin: 0;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+    .produtiva-container input,
+    .improdutiva-container input {
+      width: 50px;
+      padding: 2px;
+      text-align: right;
+      font-size: 14px;
+    }
+    /* Detalhes: Tipos e Justificativa */
+    .equipe-details {
+      width: 100%;
+      flex-direction: column;
+      margin-top: 10px;
+    }
+    .equipe-details label {
+      display: block;
+      margin-bottom: -22px;
+      font-size: 14px;
+    }
+    .equipe-details input {
+      width: 96%;
+      padding: 5px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+    /* Caixa Total */
+    .total-box {
+      position: absolute;
+      background-color: #000;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 10px;
+      font-size: 18px;
+    }
+    .total-top-right {
+      top: 5px;
+      right: 5px;
+    }
+    .total-top-left {
+      top: 5px;
+      left: 5px;
+    }
+    .total-bottom-right {
+      bottom: 5px;
+      right: 5px;
+    }
+    .total-bottom-left {
+      bottom: 5px;
+      left: 5px;
+    }
+    .supervisor-option.selected,
+    .base-option.selected,
+    .turno-option.selected {
+      background-color: #000;
+      color: #fff;
+    }
+    .supervisor-box {
+      width: 100%;
+      padding: 6px;
+      margin: 5px 0;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      background-color: #f0f0f0;
+    }
+    /* Botões - Estilo Padrão */
+    .button-default {
+      border: 1px solid #000;
+      padding: 8px 16px;
+      margin: 5px;
+      background-color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .button-default:hover {
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    /* Botões Específicos */
+    .button-accent {
+      background-color: #616964;
+      color: #fff;
+      padding: 8px 16px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .button-enviarWhatsApp {
+      background-color: #00b145;
+      color: #fff;
+      padding: 8px 16px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .button-save-pdf {
+      background-color: #ffffff;
+      border: 1px solid #000000;
+      color: #000000;
+      padding: 8px 16px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 42px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .button-clear {
+      background-color: #f44336;
+      color: #fff;
+      padding: 8px 16px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    /* Popup para confirmação de cópia */
+    #popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px;
+      background-color: rgba(0,0,0,0.8);
+      color: #fff;
+      font-size: 16px;
+      border-radius: 5px;
+      z-index: 1000;
+    }
+    /* Botão Reset (Reiniciar Sprint) */
+    #reset-button {
+      border: 1px solid #000;
+      padding: 8px 16px;
+      background-color: #000;
+      color: #fff;
+      cursor: pointer;
+      font-size: 20px;
+      border-radius: 41px;
+      margin: 10px;
+      display: block;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      z-index: 3000;
+      position: relative;
+    }
+    /* Estilo base para todos os cartões de colaborador */
+    .colaborador,
+    .colaborador-atestado,
+    .colaborador-falta,
+    .colaborador-novato {
+      border: 2px solid #e63946;      /* cor da borda */
+      border-radius: 8px;             /* cantos arredondados */
+      padding: 12px 16px;             /* espaço interno */
+      margin-bottom: 12px;            /* distância para o próximo */
+      background-color: #fff5f5;      /* leve fundo rosado */
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1); /* sombra suave */
+    }
+
+    /* Se quiser diferenciar por tipo, use cores distintas */
+    .colaborador-atestado {
+      border-color: #4caf50;
+      background-color: #f5fff5;
+    }
+    .colaborador-falta {
+      border-color: #ff9800;
+      background-color: #fff9f5;
+    }
+    .colaborador-novato {
+      border-color: #2196f3;
+      background-color: #f5faff;
+    }
+
+    /* Deixe os inputs ocupando 100% da largura interna do card */
+    .colaborador  input,
+    .colaborador-atestado input,
+    .colaborador-falta input,
+    .colaborador-novato input {
+      width: calc(63% - 10px);
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+ <!-- Overlay que intercepta todos os cliques (iniciará após a escolha "NÃO") -->
+  <div id="clickOverlay"></div>
+  
+  <!-- Global Clock -->
+  <div id="global-clock"></div>
+  
+  <!-- Popup de Boas-Vindas -->
+  <div id="welcome-popup" class="popup">
+    <p>Bem-vindo!<br>Deseja iniciar o sprint?</p>
+    <div class="popup-buttons">
+      <button class="yes-button" onclick="startSprint()">Sim</button>
+      <button class="no-button" onclick="handleNoSprint()">Não</button>
+    </div>
+  </div>
+  
+  <!-- Popup de Notificação para Sim -->
+  <div id="yes-notification-popup" class="popup">
+    <p>O sprint iniciará agora. O contador de tempo foi ativado para medir a sessão.</p>
+  </div>
+  
+  <!-- Popup de Notificação para Não -->
+  <div id="no-notification-popup" class="popup">
+    <p>Preenchimento cancelado!</p>
+  </div>
+  
+  <!-- Popup para confirmação de cópia -->
+  <div id="popup" class="popup">Mensagem Copiada!</div>
+  
+  <!-- Popup para confirmação de PDF salvo -->
+  <div id="pdf-popup" class="popup">
+    PDF salvo com sucesso!
+    <br>
+    <button id="pdf-popup-close" onclick="document.getElementById('pdf-popup').style.display='none'" style="margin-top: 10px; padding: 8px 16px; font-size: 14px; border: none; background-color: #4CAF50; color: #fff; border-radius: 4px; cursor: pointer;">Fechar</button>
+  </div>
+  
+  <!-- POPUPS ADICIONAIS -->
+  <!-- Popup para "Gerar Mensagem" -->
+  <div id="gerar-popup" class="popup">
+    <p>Mensagem Gerada!</p>
+    <button onclick="document.getElementById('gerar-popup').style.display='none'" style="margin-top: 10px; padding: 8px 16px; font-size: 14px; border: none; background-color: #4CAF50; color: #fff; border-radius: 4px; cursor: pointer;">Fechar</button>
+  </div>
+  
+  <!-- Popup para "Limpar Mensagem" -->
+  <div id="limpar-popup" class="popup">
+    <p>Mensagem limpa com sucesso!</p>
+    <button onclick="document.getElementById('limpar-popup').style.display='none'" style="margin-top: 10px; padding: 8px 16px; font-size: 14px; border: none; background-color: #4CAF50; color: #fff; border-radius: 4px; cursor: pointer;">Fechar</button>
+  </div>
+  
+  <!-- Popup para "Encaminhar via WhatsApp" -->
+  <div id="encaminhar-popup" class="popup">
+    <p>Mensagem encaminhada com sucesso! Por favor reinicie o sprint!</p>
+    <button onclick="document.getElementById('encaminhar-popup').style.display='none'" style="margin-top: 10px; padding: 8px 16px; font-size: 14px; border: none; background-color: #4CAF50; color: #fff; border-radius: 4px; cursor: pointer;">Fechar</button>
+  </div>
+  
+  <!-- Popup que aparece ao clicar no overlay -->
+  <div id="body-popup" onclick="this.style.display='none'; event.stopPropagation();">
+    ⚠️ ATENÇÃO: Todos os campos estão bloqueados!<br>
+    Reinicie a página utilizando o botão "REINICIAR SPRINT".
+  </div>
+  <!-- Conteúdo Principal -->
+  <div class="container">
+    <h2 style="text-align: center; font-size: 25px; font-weight: bold; color: #e63946;">
+      MODELO SPRINT/STATUS <br>DISPONIBILIDADE
+    </h2>
+    <h2 style="text-align: center; font-size: 21px; font-weight: bold; color: #000;">(Versão 2.0)</h2>
+
+
+    <!-- Seção Dados do Turno -->
+    <div class="section">
+      <h2 style="color: #e63946; font-size: 22px; text-align: center; margin: 20px 0; border-bottom: 5px solid #e63946;">
+        Preencha Informação do turno
+      </h2>
+      <label>📅 Data:</label>
+      <input type="date" id="data">
+      <label>🕒 Turno:</label>
+      <input type="text" id="turno" maxlength="1" readonly>
+      <button class="button-default turno-option" onclick="setTurno('B')">B</button>
+      <button class="button-default turno-option" onclick="setTurno('C')">C</button>
+      <button class="button-default turno-option" onclick="setTurno('D')">D</button>
+      <br><br>
+      <label>🏬 Base:</label>
+      <input type="text" id="base" readonly>
+      <button class="button-default base-option" onclick="setBase('JACARECANGA')">Jacarecanga</button>
+      <button class="button-default base-option" onclick="setBase('MARACANAU')">Maracanaú</button>
+      <button class="button-default base-option" onclick="setBase('MESSEJANA')">Messejana</button>
+      <br><br>
+      <label>👤 Supervisor:</label>
+      <input type="text" id="supervisor" class="preview-box" readonly>
+      <div id="supervisores">
+        <button class="button-default supervisor-option" onclick="toggleSupervisor(this)">FRANCISCO CLECIO</button>
+        <button class="button-default supervisor-option" onclick="toggleSupervisor(this)">JEFERSON ALVES</button>
+        <button class="button-default supervisor-option" onclick="toggleSupervisor(this)">SAMUEL PEIXOTO</button>
+        <button class="button-default supervisor-option" onclick="toggleSupervisor(this)">MARCOS FERNANDO</button>
+        <button class="button-default supervisor-option" onclick="toggleSupervisor(this)">JOHNY ANGELO</button>
+        <button class="button-default supervisor-option" onclick="toggleSupervisor(this)">HELBER CARNEIRO</button>
+        <button class="button-default supervisor-option" onclick="toggleSupervisor(this)">ROGERIO AQUINO</button>
+      </div>
+    </div>
+    <h2 style="color: #e63946; font-size: 22px; text-align: center; margin: 20px 0; border-bottom: 5px solid #e63946;">
+        Preencha Informação geral
+      </h2>
+    <!-- Seção Resumo Equipes -->
+    <div class="section">
+      <h3>📌 Resumo Equipes</h3>
+      <div class="flex">
+        <label for="reporteHorario">REPORTE ÀS:</label>
+        <input type="text" id="reporteHorario" maxlength="5" placeholder="HH:MM" oninput="formatarHora(this)">
+        <label for="previsaoEntradas">PREVISÃO ENTRADAS:</label>
+        <input type="text" id="previsaoEntradas" maxlength="2" oninput="somenteNumeros(this)">
+      </div>
+    </div>
+    
+    
+
+    <!-- Seção Em Campo -->
+    <div class="section">
+      <h3>🚗Equipes em Campo</h3>
+      <div class="flex">
+        <label for="eqpManCorr">EQP. MANUT. CORRETIVA:</label>
+        <input type="text" id="eqpManCorr" maxlength="2" oninput="recalcularEquipesCampo()">
+        <label for="eqpLinhaEmerg">EQP. LINHA VIVA EMERG.:</label>
+        <input type="text" id="eqpLinhaEmerg" maxlength="2" oninput="recalcularEquipesCampo()">
+        <label for="eqpPoda">EQP. PODA:</label>
+        <input type="text" id="eqpPoda" maxlength="2" oninput="recalcularEquipesCampo()">
+        
+        <label for="equipesCampo">SOMA EQUIPES EM CAMPO:</label> 
+        <input type="text" id="equipesCampo" readonly class="readonly">
+      </div>
+    </div>
+
+    <!-- Seção Paradas -->
+    <div class="section">
+      <h3>🚧Contagem Equipes Paradas</h3>
+      <div class="flex">
+        <label for="equipesParadas">Total</label>
+        <input type="text" id="equipesParadas" readonly class="readonly">
+      </div>
+    </div>
+    
+     <h2 style="color: #e63946; font-size: 22px; text-align: center; margin: 20px 0; border-bottom: 5px solid #e63946;">
+        Preencha Informação detalhada
+      </h2>
+
+    <!-- Seção Eletricistas Parados -->
+    <div class="section">
+      <h3>🚗 Equipes Paradas</h3>
+      <button class="button-default" onclick="adicionarColaborador()">Adicionar</button>
+      <button class="button-clear" onclick="removerColaborador()">Remover</button>
+      <div id="colaboradoresParados"></div>
+      <div class="flex">
+        <label for="totalParados">TOTAL EQUIPES PARADAS:</label>
+        <input type="text" id="totalParados" readonly class="readonly">
+      </div>
+    </div>
+
+    <!-- Seção Atestados -->
+    <div class="section">
+      <h3>📃 Atestados</h3>
+      <button class="button-default" onclick="adicionarColaboradorAtestado()">Adicionar</button>
+      <button class="button-clear" onclick="removerColaboradorAtestado()">Remover</button>
+      <div id="colaboradoresAtestado"></div>
+      <div class="flex">
+        <label for="totalAtestado">TOTAL ELETRICISTAS ATESTADO:</label>
+        <input type="text" id="totalAtestado" readonly class="readonly">
+      </div>
+    </div>
+
+    <!-- Seção Faltas -->
+    <div class="section">
+      <h3>⚠️ Faltas</h3>
+      <button class="button-default" onclick="adicionarColaboradorFalta()">Adicionar</button>
+      <button class="button-clear" onclick="removerColaboradorFalta()">Remover</button>
+      <div id="colaboradoresFalta"></div>
+      <div class="flex">
+        <label for="totalFalta">TOTAL ELETRICISTAS C/ FALTAS:</label>
+        <input type="text" id="totalFalta" readonly class="readonly">
+      </div>
+    </div>
+
+    <!-- Seção Novatos Parados -->
+    <div class="section">
+      <h3>🆕 Eletricistas Parados</h3>
+      <button class="button-default" onclick="adicionarColaboradorNovato()">Adicionar</button>
+      <button class="button-clear" onclick="removerColaboradorNovato()">Remover</button>
+      <div id="colaboradoresNovato"></div>
+      <div class="flex">
+        <label for="totalNovato">TOTAL ELETRICISTAS PARADOS:</label>
+        <input type="text" id="totalNovato" readonly class="readonly">
+      </div>
+    </div>
+
+    <!-- Preview de Mensagem -->
+    <div class="section">
+      <h3>📋 Mensagem de Previsualização</h3>
+      <textarea id="mensagem" class="preview-box" readonly></textarea>
+      <div class="flex">
+        <button class="button-accent" onclick="gerarMensagem()">Gerar Mensagem</button>
+        <button class="button-default" onclick="copiarMensagem()">Copiar</button>
+        <button class="button-clear" onclick="limparMensagem()">Limpar</button>
+      </div>
+    </div>
+    
+    <!-- Botão Salvar PDF -->
+    <button class="button-save-pdf" id="save-pdf-button" onclick="savePdf()">Salvar PDF</button>
+    <button class="button-enviarWhatsApp" onclick="handleEnviarWhatsApp()">Encaminhar via WhatsApp</button><br>
+
+    <br><br>
+    <!-- Botão para Reiniciar Sprint (sempre clicável) -->
+    <button style="text-align: center; font-style: italic; font-family: 'Courier New', Courier, monospace; margin-top: 10px;"  id="reset-button" onclick="resetSprint()">REINICIAR SPRINT!</button>
+    <br><br>
+ 
+    <!-- Logo & Assinatura -->
+    <div style="text-align:center; margin-top:30px;">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/2/22/Enel_Group_logo.svg" alt="Logo ENEL" style="width:150px;">
+      <p style="font-style:italic; font-family:'Courier New',monospace; margin-top:10px;">
+        © 2025 Emanuel Aguiar (Assistente Administrativo Insourcing - Enel CE)<br>
+        Todos os direitos reservados.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    
+    // Turno/Base/Supervisor
+    function setTurno(t){document.getElementById('turno').value=t;document.querySelectorAll('.turno-option').forEach(b=>b.classList.toggle('selected',b.innerText===t));}
+    function setBase(base) {
+      document.getElementById('base').value = base;
+      let baseButtons = document.querySelectorAll('.base-option');
+      baseButtons.forEach(button => button.classList.remove('selected'));
+      let selectedButton = Array.from(baseButtons).find(button =>
+        button.innerText.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase() === 
+        base.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase()
+      );
+      if (selectedButton) selectedButton.classList.add('selected');
+    }
+    function toggleSupervisor(btn){btn.classList.toggle('selected');const sel=Array.from(document.querySelectorAll('.supervisor-option.selected')).map(b=>b.innerText).join(', ');document.getElementById('supervisor').value=sel;}
+    // Popups e overlay
+    function showPopup(id, dur=3000) {
+      const p = document.getElementById(id);
+      p.style.display = 'block';
+      setTimeout(()=> p.style.display = 'none', dur);
+    }
+    function disableAll() {
+      document.querySelectorAll('input, button').forEach(el => {
+        if (el.id==='reset-button' || el.closest('#welcome-popup')) return;
+        el.disabled = true;
+      });
+    }
+    function enableAll() {
+      document.querySelectorAll('input, button').forEach(el => {
+        if (el.id==='reset-button' || el.closest('#welcome-popup')) return;
+        el.disabled = false;
+      });
+    }
+    window.onload = ()=>{
+      disableAll();
+      document.getElementById('welcome-popup').style.display='block';
+    };
+    function startSprint(){
+      enableAll();
+      document.getElementById('welcome-popup').style.display='none';
+      document.getElementById('global-clock').style.display='block';
+      clickOverlay.style.display='none';
+      showPopup('yes-notification-popup',2000);
+      globalTimerStart = Date.now();
+      globalTimerInterval = setInterval(updateClock,1000);
+    }
+    function handleNoSprint(){
+      document.getElementById('welcome-popup').style.display='none';
+      clickOverlay.style.display='block';
+      showPopup('no-notification-popup',2000);
+    }
+    function resetSprint(){ location.reload(); }
+
+    // Relógio global
+    let globalTimerStart, globalTimerInterval;
+    function updateClock(){
+      const sec = Math.floor((Date.now()-globalTimerStart)/1000);
+      document.getElementById('global-clock').textContent = formatTime(sec);
+    }
+    function formatTime(total) {
+      const m = Math.floor(total/60), s = total%60;
+      return (m>0?m+'m ':'') + s+'s';
+    }
+
+    // Helpers de formatação
+    function formatarHora(el){
+      el.value = el.value.replace(/\D/g,'').slice(0,4).replace(/^(\d{2})(\d)/,'$1:$2');
+    }
+    function somenteNumeros(el){
+      el.value = el.value.replace(/\D/g,'').slice(0,2);
+    }
+
+    // Supervisores multi-select
+    function toggleSupervisor(btn){
+      btn.classList.toggle('selected');
+      const sel = Array.from(document.querySelectorAll('.supervisor-option.selected'))
+                       .map(b=>b.innerText).join(', ');
+      document.getElementById('supervisor').value = sel;
+    }
+
+    // Cálculo equipes em campo & paradas
+    function recalcularEquipesCampo(){
+      const a=+document.getElementById('eqpManCorr').value||0;
+      const b=+document.getElementById('eqpLinhaEmerg').value||0;
+      const c=+document.getElementById('eqpPoda').value||0;
+      const total = a+b+c;
+      document.getElementById('equipesCampo').value = total;
+      recalcularParadas();
+    }
+    function recalcularParadas(){
+      const prev=+document.getElementById('previsaoEntradas').value||0;
+      const campo=+document.getElementById('equipesCampo').value||0;
+      document.getElementById('equipesParadas').value = prev-campo;
+    }
+
+    // Colaboradores Parados
+        function adicionarColaborador(){
+      const c = document.getElementById('colaboradoresParados');
+      const div = document.createElement('div');
+      div.className = 'colaborador';
+      div.innerHTML = `
+        <input
+          type="text"
+          class="nomeColaborador"
+          placeholder="INSERIR PLACA"
+          maxlength="7"
+          pattern="[A-Z0-9]{7}"
+          title="Digite 7 caracteres: apenas letras (A–Z) e números (0–9)."
+          oninput="
+            this.value = this.value
+              .toUpperCase()
+              .replace(/[^A-Z0-9]/g, '')
+              .slice(0,7);
+          "
+        /> <label>PLACA:</label>
+        <input
+          type="text"
+          class="motivoColaborador"
+          placeholder="DESCREVA DETALHES"
+          oninput="this.value = this.value.toUpperCase()"
+        /> <label>JUSTIFICATIVA/MOTIVO:</label>
+      `;
+      c.appendChild(div);
+      atualizarTotalParados();
+    }
+    function removerColaborador(){
+      const c=document.getElementById('colaboradoresParados');
+      if(c.lastChild) c.removeChild(c.lastChild);
+      atualizarTotalParados();
+    }
+    function atualizarTotalParados(){
+      document.getElementById('totalParados').value =
+        document.querySelectorAll('#colaboradoresParados .colaborador').length;
+    }
+
+    // Colaboradores Atestado
+    function adicionarColaboradorAtestado(){
+      const c   = document.getElementById('colaboradoresAtestado');
+      const div = document.createElement('div');
+      div.className = 'colaborador-atestado';
+      div.innerHTML = `
+        <input type="text" class="nomeColaboradorAtestado" placeholder="INSIRA NOME COMPLETO" oninput="this.value=this.value.toUpperCase()"> <label>Nome:</label>
+        <input type="date" class="dataInicioAtestado" onchange="atualizarDiasAtestado(this)"> <label>Data Início:</label>
+        <input type="date" class="previsaoRetornoAtestado" onchange="atualizarDiasAtestado(this)"> <label>Data Fim:</label>
+        <input type="text" class="diasAfastado" readonly placeholder="DIAS AFASTADO"> <label>Total dias afastado:</label> 
+      `;
+      c.appendChild(div);
+      atualizarTotalAtestado();
+    }
+
+    function removerColaboradorAtestado(){
+      const c = document.getElementById('colaboradoresAtestado');
+      if (c.lastChild) c.removeChild(c.lastChild);
+      atualizarTotalAtestado();
+    }
+
+    function atualizarTotalAtestado(){
+      document.getElementById('totalAtestado').value =
+        document.querySelectorAll('#colaboradoresAtestado .colaborador-atestado').length;
+    }
+
+    // recalcula dias entre Data Início e Data Fim
+    function atualizarDiasAtestado(el){
+      const container   = el.parentElement;
+      const inicioVal   = container.querySelector('.dataInicioAtestado').value;
+      const fimVal      = container.querySelector('.previsaoRetornoAtestado').value;
+      if (!inicioVal || !fimVal) return;  // só calcula quando ambos existirem
+
+      const inicio = new Date(inicioVal);
+      const fim    = new Date(fimVal);
+      const diff   = Math.ceil((fim - inicio) / (1000*60*60*24));
+      container.querySelector('.diasAfastado').value = diff >= 0 ? diff : 0;
+      atualizarTotalAtestado();
+    }
+
+    // Colaboradores Falta
+    function adicionarColaboradorFalta(){
+      const c=document.getElementById('colaboradoresFalta');
+      const div=document.createElement('div'); div.className='colaborador-falta';
+      div.innerHTML = `
+        <input type="text" class="nomeColaboradorFalta" placeholder="INSIRA NOME COMPLETO" oninput="this.value=this.value.toUpperCase()"> <label>Nome:</label>
+        <input type="date" class="dataFalta" onchange="atualizarTotalFalta()"> <label>Data da falta<label>
+      `;
+      c.appendChild(div); atualizarTotalFalta();
+    }
+    function removerColaboradorFalta(){
+      const c=document.getElementById('colaboradoresFalta');
+      if(c.lastChild) c.removeChild(c.lastChild);
+      atualizarTotalFalta();
+    }
+    function atualizarTotalFalta(){
+      document.getElementById('totalFalta').value =
+        document.querySelectorAll('#colaboradoresFalta .colaborador-falta').length;
+    }
+
+    // Colaboradores Novato
+    function adicionarColaboradorNovato(){
+      const c=document.getElementById('colaboradoresNovato');
+      const div=document.createElement('div'); div.className='colaborador-novato';
+      div.innerHTML = `
+        <input type="text" class="nomeColaboradorNovato" placeholder="INSIRA NOME COMPLETO" oninput="this.value=this.value.toUpperCase()"> <label>Nome:</label>
+        <input type="text" class="motivoNovato" placeholder="DESCREVA DETALHES" oninput="this.value=this.value.toUpperCase()"> <label>Justificativa/Motivo</label>
+        <input type="date" class="previsaoRetornoNovato" onchange="atualizarDiasNovato(this)"> <label>Previsão de Retorno<label>
+        <input type="text" class="diasNovato" readonly placeholder="DIAS" class="readonly"> <label>Tempo parado<label>
+      `;
+      c.appendChild(div); atualizarTotalNovato();
+    }
+    function removerColaboradorNovato(){
+      const c=document.getElementById('colaboradoresNovato');
+      if(c.lastChild) c.removeChild(c.lastChild);
+      atualizarTotalNovato();
+    }
+    function atualizarDiasNovato(el){
+      const retorno=new Date(el.value), hoje=new Date();
+      const diff=Math.ceil((retorno-hoje)/(1000*60*60*24));
+      el.parentElement.querySelector('.diasNovato').value = diff>=0?diff:0;
+      atualizarTotalNovato();
+    }
+    function atualizarTotalNovato(){
+      document.getElementById('totalNovato').value =
+        document.querySelectorAll('#colaboradoresNovato .colaborador-novato').length;
+    }
+
+    // Gerar mensagem de preview
+    function gerarMensagem(){
+      // Dados turno
+      const t = document.getElementById('turno').value;
+      const dInput = document.getElementById('data').value;
+      const d = dInput ? dInput.split('-').reverse().join('/') : '';
+      const b = document.getElementById('base').value;
+      const sup = document.getElementById('supervisor').value || '';
+      // Resumo equipes
+      const rep = document.getElementById('reporteHorario').value;
+      const prev = document.getElementById('previsaoEntradas').value;
+      const camp = document.getElementById('equipesCampo').value;
+      // Em campo
+      const m = document.getElementById('eqpManCorr').value||0;
+      const l = document.getElementById('eqpLinhaEmerg').value||0;
+      const p = document.getElementById('eqpPoda').value||0;
+      // Paradas
+      const par = document.getElementById('equipesParadas').value||0;
+      let msg = '';
+      msg += "---- *DADOS TURNO* ----\n";
+      msg += `*TURNO* (${t})\n*DATA:* ${d}\n*BASE:* ${b}\n*SUPERVISORES:* ${sup}\n\n`;
+      msg += "---- *RESUMO EQUIPES* ----\n";
+      msg += `*REPORTE ÀS* ${rep}\n*PREVISÃO ENTRADAS TOTAL:* (${prev})\n*EQUIPES EM CAMPO:* (${camp})\n\n`;
+      msg += "----- *EM CAMPO* ----\n";
+      msg += `*EQP. MANUTENÇÃO CORRETIVA:* (${m})\n*EQP. LINHA VIVA EMERGENCIAL:* (${l})\n*EQP. PODA:* (${p})\n\n`;
+      msg += "----- *PARADAS* ----\n";
+      msg += `*EQUIPES PARADAS:* (${par})\n\n`;
+      // Eletricistas parados
+      const paras = document.querySelectorAll('#colaboradoresParados .colaborador');
+      msg += "---- *VIAT. PARADAS* ----\n";
+      msg += `*EQUIPES PARADAS TOTAL* (${paras.length})\n\n`;
+      paras.forEach(c=>{
+        const nome = c.querySelector('.nomeColaborador').value;
+        const mot = c.querySelector('.motivoColaborador').value;
+        msg += `*LEAD:* ${nome}\n*JUSTIFICATIVAS/MOTIVO:* (${mot})\n\n`;
+      });
+      // Atestados
+      const ates = document.querySelectorAll('#colaboradoresAtestado .colaborador-atestado');
+      msg += "---- *ATESTADOS* ----\n";
+      msg += `*ELETRICISTAS ATESTADO TOTAL* (${ates.length})\n\n`;
+      ates.forEach(a=>{
+        const nome   = a.querySelector('.nomeColaboradorAtestado').value;
+        const inicio = a.querySelector('.dataInicioAtestado').value.split('-').reverse().join('/');
+        const dias   = a.querySelector('.diasAfastado').value;
+        const fim    = a.querySelector('.previsaoRetornoAtestado').value.split('-').reverse().join('/');
+        msg += `*NOME:* ${nome}\n`;
+        msg += `*DATA INÍCIO:* ${inicio}\n`;
+        msg += `*DIAS AFASTADO:* ${dias} DIAS\n`;
+        msg += `*PREVISÃO DE RETORNO:* ${fim}\n\n`;
+      });
+      // Faltas
+      const falt = document.querySelectorAll('#colaboradoresFalta .colaborador-falta');
+      msg += "---- *FALTAS* ----\n";
+      msg += `*ELETRICISTAS FALTAS TOTAL* (${falt.length})\n\n`;
+      falt.forEach(f=>{
+        const nome = f.querySelector('.nomeColaboradorFalta').value;
+        const dia = f.querySelector('.dataFalta').value.split('-').reverse().join('/');
+        msg += `*NOME:* ${nome}\n*DIA:* ${dia}\n\n`;
+      });
+      // Novatos
+      const nov = document.querySelectorAll('#colaboradoresNovato .colaborador-novato');
+      msg += "---- *ELETRICISTAS PARADOS* ----\n";
+      msg += `*ELETRICISTAS PARADOS TOTAL* (${nov.length})\n\n`;
+      nov.forEach(n=>{
+        const nome = n.querySelector('.nomeColaboradorNovato').value;
+        const mot = n.querySelector('.motivoNovato').value;
+        const ret = n.querySelector('.previsaoRetornoNovato').value.split('-').reverse().join('/');
+        msg += `*NOME:* ${nome}\n*JUSTIFICATIVAS/MOTIVO:* ${mot}\n*PREVISAO PARA RETORNO:* ${ret}\n\n`;
+      });
+      // Tempo de sessão
+      if (globalTimerStart) {
+        const sec = Math.floor((Date.now()-globalTimerStart)/1000);
+        msg += `*TEMPO DA SESSÃO:* ${formatTime(sec)}\n`;
+      }
+      document.getElementById('mensagem').value = msg.trim();
+      showPopup('gerar-popup',1500);
+    }
+
+    // Copiar e limpar
+    function copiarMensagem(){
+      const t = document.getElementById('mensagem');
+      t.select(); document.execCommand('copy');
+      showPopup('popup',1500);
+    }
+    function limparMensagem(){
+      document.getElementById('mensagem').value = '';
+      showPopup('limpar-popup',1500);
+    }
+    function savePdf() {
+      gerarMensagem();
+      var container = document.querySelector('.container');
+      var width = container.offsetWidth;
+      var height = container.offsetHeight;
+      let now = new Date();
+      let data = document.getElementById('data').value;
+      let turno = document.getElementById('turno').value;
+      let base = document.getElementById('base').value;
+      let supervisor = document.getElementById('supervisor').value;
+      let fileName = "";
+      if (data && turno && base && supervisor) {
+          fileName = `${turno}_${base}_${supervisor}_${data}.pdf`;
+      } else {
+          fileName = `Produtividade_${now.toISOString()}.pdf`;
+      }
+      function enviarWhatsApp() {
+      let mensagem = document.getElementById('mensagem').value;
+      let encodedMessage = encodeURIComponent(mensagem);
+      window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+      }
+      
+      html2pdf(container, {
+          margin: 0,
+          filename: fileName,
+          image: { type: 'jpeg', quality: 0.99 },
+          html2canvas: { scale: 2 },
+          jsPDF: {
+              unit: 'px',
+              format: [width, height],
+              orientation: 'portrait'
+          }
+      }).then(() => {
+          pdfSaved = true;
+          var pdfButton = document.getElementById('save-pdf-button');
+          pdfButton.textContent = "PDF já salvo";
+          pdfButton.style.backgroundColor = "#006400";
+          pdfButton.style.color = "#fff";
+          pdfButton.style.border = "2px solid #004d00";
+          pdfButton.style.boxShadow = "0 0 10px rgba(0,0,0,0.3)";
+          document.getElementById('pdf-popup').style.display = 'block';
+          setTimeout(() => {
+              document.getElementById('pdf-popup').style.display = 'none';
+          }, 4000);
+      });
+    }
+
+    // O overlay (clickOverlay) intercepta cliques em toda a página.
+    // Quando clicado, exibe o popup (body-popup) com a mensagem de aviso.
+    document.getElementById('clickOverlay').addEventListener('click', function(e) {
+      document.getElementById('body-popup').style.display = 'block';
+      // Impede que o clique propague para outras partes (se necessário)
+      e.stopPropagation();
+    });
+    
+
+
+  </script>
+</body>
+</html>

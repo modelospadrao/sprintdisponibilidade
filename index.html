@@ -539,7 +539,7 @@
 
     <!-- Seção Em Campo -->
     <div class="section">
-      <h3>🚗 Detalhes Equipes</h3>
+      <h3>🚗Detalhes Equipes</h3>
       <div class="flex">
         <label for="eqpManCorr">EQP. MANUT. CORRETIVA:</label>
         <input type="text" id="eqpManCorr" maxlength="2" oninput="recalcularEquipesCampo()">
@@ -548,7 +548,7 @@
         <label for="eqpPoda">EQP. PODA:</label>
         <input type="text" id="eqpPoda" maxlength="2" oninput="recalcularEquipesCampo()">
         
-        <h3>🚗 Equipes em Campo</h3>
+        <h3>🚗Equipes em Campo</h3>
         <label for="equipesCampo"
        style="color: #e63946; font-style: italic; font-weight: bold;">
           Soma Total:
@@ -559,7 +559,7 @@
 
     <!-- Seção Paradas -->
     <div class="section">
-      <h3>🚧 Contagem Equipes Paradas</h3>
+      <h3>🚧Contagem Equipes Paradas</h3>
       <div class="flex">
         <label for="equipesCampo"
        style="color: #e63946; font-style: italic; font-weight: bold;">
@@ -900,12 +900,12 @@
       msg += `*REPORTE ÀS* ${rep}\n*PREVISÃO ENTRADAS TOTAL:* (${prev})\n*EQUIPES EM CAMPO:* (${camp})\n\n`;
       msg += "----- *EM CAMPO* ----\n";
       msg += `*EQP. MANUTENÇÃO CORRETIVA:* (${m})\n*EQP. LINHA VIVA EMERGENCIAL:* (${l})\n*EQP. PODA:* (${p})\n\n`;
-      msg += "----- *PARADAS* ----\n";
-      msg += `*EQUIPES PARADAS:* (${par})\n\n`;
+      msg += "----- *EQUIPES PARADAS* ----\n";
+      msg += `*TOTAL:* (${par})\n\n`;
       // Eletricistas parados
       const paras = document.querySelectorAll('#colaboradoresParados .colaborador');
       msg += "---- *VIAT. PARADAS* ----\n";
-      msg += `*EQUIPES PARADAS TOTAL* (${paras.length})\n\n`;
+      msg += `*TOTAL* (${paras.length})\n\n`;
       paras.forEach(c=>{
         const nome = c.querySelector('.nomeColaborador').value;
         const mot = c.querySelector('.motivoColaborador').value;
@@ -914,7 +914,7 @@
       // Atestados
       const ates = document.querySelectorAll('#colaboradoresAtestado .colaborador-atestado');
       msg += "---- *ATESTADOS* ----\n";
-      msg += `*ELETRICISTAS ATESTADO TOTAL* (${ates.length})\n\n`;
+      msg += `*TOTAL* (${ates.length})\n\n`;
       ates.forEach(a=>{
         const nome   = a.querySelector('.nomeColaboradorAtestado').value;
         const inicio = a.querySelector('.dataInicioAtestado').value.split('-').reverse().join('/');
@@ -928,7 +928,7 @@
       // Faltas
       const falt = document.querySelectorAll('#colaboradoresFalta .colaborador-falta');
       msg += "---- *FALTAS* ----\n";
-      msg += `*ELETRICISTAS FALTAS TOTAL* (${falt.length})\n\n`;
+      msg += `*TOTAL* (${falt.length})\n\n`;
       falt.forEach(f=>{
         const nome = f.querySelector('.nomeColaboradorFalta').value;
         const dia = f.querySelector('.dataFalta').value.split('-').reverse().join('/');
@@ -937,7 +937,7 @@
       // Novatos
       const nov = document.querySelectorAll('#colaboradoresNovato .colaborador-novato');
       msg += "---- *ELETRICISTAS PARADOS* ----\n";
-      msg += `*ELETRICISTAS PARADOS TOTAL* (${nov.length})\n\n`;
+      msg += `*TOTAL* (${nov.length})\n\n`;
       nov.forEach(n=>{
         const nome = n.querySelector('.nomeColaboradorNovato').value;
         const mot = n.querySelector('.motivoNovato').value;

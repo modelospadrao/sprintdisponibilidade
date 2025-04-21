@@ -412,14 +412,68 @@
       background-color: #f5faff;
     }
 
-    /* Deixe os inputs ocupando 100% da largura interna do card */
-    .colaborador  input,
+        /* Container geral do card */
+    .colaborador-atestado {
+      border-color: #4caf50;
+      background-color: #f5fff5;
+    }
+    .colaborador-falta {
+      border-color: #ff9800;
+      background-color: #fff9f5;
+    }
+    .colaborador-novato {
+      border-color: #2196f3;
+      background-color: #f5faff;
+    }
+
+    /* Label sempre à esquerda, acima da caixa */
+    .colaborador-atestado label,
+    .colaborador-falta label,
+    .colaborador-novato label {
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+    }
+
+    /* Inputs e selects ocupam 100% da largura interna */
     .colaborador-atestado input,
+    .colaborador-atestado select,
     .colaborador-falta input,
     .colaborador-novato input {
-      width: calc(63% - 10px);
-      margin: 4px 0;
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
     }
+    * Estilo para cada card de colaborador parado */
+    .colaborador {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;            /* espaço entre cada par label+input */
+      padding: 16px;
+      background: #fafafa;  /* fundo suave */
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    /* Label sempre acima e alinhado à esquerda */
+    .colaborador label {
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+    }
+
+    /* Inputs ocupam 100% da largura interna */
+    .colaborador input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    
   </style>
 </head>
 <body>
@@ -547,8 +601,11 @@
         <input type="text" id="eqpLinhaEmerg" maxlength="2" oninput="recalcularEquipesCampo()">
         <label for="eqpPoda">EQP. PODA:</label>
         <input type="text" id="eqpPoda" maxlength="2" oninput="recalcularEquipesCampo()">
+        <!-- NOVO CAMPO -->
+        <label for="eqpPesada">EQP. PESADA:</label>
+        <input type="text" id="eqpPesada" maxlength="2" oninput="recalcularEquipesCampo()">
         
-        <h3>🚗Equipes em Campo</h3>
+        <h3>(Contagem) Equipes em Campo 🚗</h3>
         <label for="equipesCampo"
        style="color: #e63946; font-style: italic; font-weight: bold;">
           Soma Total:
@@ -559,7 +616,7 @@
 
     <!-- Seção Paradas -->
     <div class="section">
-      <h3>🚧Contagem Equipes Paradas</h3>
+      <h3>(Contagem) Equipes Paradas 🚧</h3>
       <div class="flex">
         <label for="equipesCampo"
        style="color: #e63946; font-style: italic; font-weight: bold;">
@@ -575,7 +632,7 @@
 
     <!-- Seção Eletricistas Parados -->
     <div class="section">
-      <h3>🚗 Equipes Paradas</h3>
+      <h3>🚗 Viaturas Paradas</h3>
       <button class="button-default" onclick="adicionarColaborador()">Adicionar</button>
       <button class="button-clear" onclick="removerColaborador()">Remover</button>
       <div id="colaboradoresParados"></div>
@@ -584,6 +641,9 @@
         <input type="text" id="totalParados" readonly class="readonly">
       </div>
     </div>
+
+    <!-- Datalist com a lista de eletricistas (vai ser preenchido via JS) -->
+    <datalist id="eletricistasList"></datalist>
 
     <!-- Seção Atestados -->
     <div class="section">
@@ -616,7 +676,7 @@
       <button class="button-clear" onclick="removerColaboradorNovato()">Remover</button>
       <div id="colaboradoresNovato"></div>
       <div class="flex">
-        <label for="totalNovato">TOTAL ELETRICISTAS PARADOS:</label>
+        <label for="totalNovato">TOTAL ELETRICISTAS NOVATOS:</label>
         <input type="text" id="totalNovato" readonly class="readonly">
       </div>
     </div>
@@ -653,6 +713,42 @@
   </div>
 
   <script>
+    
+       // carrega o JSON e popula a variável eletricistas
+    let eletricistas = [];
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch('./eletricistas.json')
+        .then(r => r.json())
+        .then(lst => eletricistas = lst)
+        .catch(console.error);
+    });
+
+    // helper que monta o select com todos os nomes
+    function criarSelectEletricistas(className) {
+      const sel = document.createElement('select');
+      sel.className = className;
+      sel.innerHTML =
+        '<option value="">— selecione —</option>' +
+        eletricistas
+          .map(n => `<option value="${n}">${n}</option>`)
+          .join('');
+      return sel;
+    }
+    
+      window.addEventListener('DOMContentLoaded', () => {
+    fetch('./eletricistas.json')
+      .then(res => res.json())
+      .then(data => {
+        eletricistas = data;            // popula a variável
+        const dl = document.getElementById('eletricistasList');
+        data.forEach(nome => {
+          const opt = document.createElement('option');
+          opt.value = nome;
+          dl.appendChild(opt);
+        });
+      })
+      .catch(err => console.error('Erro carregando eletricistas:', err));
+  });
     
     // Turno/Base/Supervisor
     function setTurno(t){document.getElementById('turno').value=t;document.querySelectorAll('.turno-option').forEach(b=>b.classList.toggle('selected',b.innerText===t));}
@@ -732,72 +828,119 @@
       document.getElementById('supervisor').value = sel;
     }
 
-    // Cálculo equipes em campo & paradas
-    function recalcularEquipesCampo(){
-      const a=+document.getElementById('eqpManCorr').value||0;
-      const b=+document.getElementById('eqpLinhaEmerg').value||0;
-      const c=+document.getElementById('eqpPoda').value||0;
-      const total = a+b+c;
+        // Cálculo equipes em campo & paradas
+    function recalcularEquipesCampo() {
+      const a      = parseInt(document.getElementById('eqpManCorr').value, 10)    || 0;
+      const b      = parseInt(document.getElementById('eqpLinhaEmerg').value, 10) || 0;
+      const c      = parseInt(document.getElementById('eqpPoda').value, 10)      || 0;
+      const pesada = parseInt(document.getElementById('eqpPesada').value, 10)   || 0;
+      const total  = a + b + c + pesada;
       document.getElementById('equipesCampo').value = total;
       recalcularParadas();
     }
-    function recalcularParadas(){
-      const prev=+document.getElementById('previsaoEntradas').value||0;
-      const campo=+document.getElementById('equipesCampo').value||0;
-      document.getElementById('equipesParadas').value = prev-campo;
+
+    function recalcularParadas() {
+      const prev  = parseInt(document.getElementById('previsaoEntradas').value, 10) || 0;
+      const campo = parseInt(document.getElementById('equipesCampo').value, 10)    || 0;
+      document.getElementById('equipesParadas').value = prev - campo;
     }
 
     // Colaboradores Parados
-        function adicionarColaborador(){
-      const c = document.getElementById('colaboradoresParados');
+         function adicionarColaborador() {
+      const container = document.getElementById('colaboradoresParados');
       const div = document.createElement('div');
       div.className = 'colaborador';
-      div.innerHTML = `
-        <input
-          type="text"
-          class="nomeColaborador"
-          placeholder="INSERIR PLACA"
-          maxlength="7"
-          pattern="[A-Z0-9]{7}"
-          title="Digite 7 caracteres: apenas letras (A–Z) e números (0–9)."
-          oninput="
-            this.value = this.value
-              .toUpperCase()
-              .replace(/[^A-Z0-9]/g, '')
-              .slice(0,7);
-          "
-        /> <label>PLACA:</label>
-        <input
-          type="text"
-          class="motivoColaborador"
-          placeholder="DESCREVA DETALHES"
-          oninput="this.value = this.value.toUpperCase()"
-        /> <label>JUSTIFICATIVA/MOTIVO:</label>
-      `;
-      c.appendChild(div);
+
+      // Label + input Placa
+      const lblPlaca = document.createElement('label');
+      lblPlaca.textContent = 'Placa:';
+      const inpPlaca = document.createElement('input');
+      inpPlaca.type = 'text';
+      inpPlaca.className = 'nomeColaborador';
+      inpPlaca.placeholder = 'INSERIR PLACA';
+      inpPlaca.maxLength = 7;
+      inpPlaca.oninput = function() {
+        this.value = this.value
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, '')
+          .slice(0,7);
+      };
+
+      // Label + input Justificativa
+      const lblMotivo = document.createElement('label');
+      lblMotivo.textContent = 'Justificativa:';
+      const inpMotivo = document.createElement('input');
+      inpMotivo.type = 'text';
+      inpMotivo.className = 'motivoColaborador';
+      inpMotivo.placeholder = 'DESCREVA DETALHES';
+      inpMotivo.oninput = function() {
+        this.value = this.value.toUpperCase();
+      };
+
+      // Empilha label→input, label→input
+      div.append(lblPlaca, inpPlaca, lblMotivo, inpMotivo);
+      container.appendChild(div);
+
       atualizarTotalParados();
-    }
-    function removerColaborador(){
-      const c=document.getElementById('colaboradoresParados');
-      if(c.lastChild) c.removeChild(c.lastChild);
-      atualizarTotalParados();
-    }
-    function atualizarTotalParados(){
-      document.getElementById('totalParados').value =
-        document.querySelectorAll('#colaboradoresParados .colaborador').length;
     }
 
+    // Remove o último “card”
+    function removerColaborador() {
+      const container = document.getElementById('colaboradoresParados');
+      // remove o último elemento filho (ignora nós de texto)
+      if (container.lastElementChild) {
+        container.removeChild(container.lastElementChild);
+      }
+      atualizarTotalParados();
+    }
+
+    // Atualiza a contagem
+    function atualizarTotalParados() {
+      const count = document.querySelectorAll('#colaboradoresParados .colaborador').length;
+      document.getElementById('totalParados').value = count;
+    }
+    
     // Colaboradores Atestado
-    function adicionarColaboradorAtestado(){
+    
+        function adicionarColaboradorAtestado() {
       const c   = document.getElementById('colaboradoresAtestado');
       const div = document.createElement('div');
       div.className = 'colaborador-atestado';
-      div.innerHTML = `
-        <input type="text" class="nomeColaboradorAtestado" placeholder="INSIRA NOME COMPLETO" oninput="this.value=this.value.toUpperCase()"> <label>Nome:</label>
-        <input type="date" class="dataInicioAtestado" onchange="atualizarDiasAtestado(this)"> <label>Data Início:</label>
-        <input type="date" class="previsaoRetornoAtestado" onchange="atualizarDiasAtestado(this)"> <label>Data Fim:</label>
-        <input type="text" class="diasAfastado" readonly placeholder="DIAS AFASTADO"> <label>Total dias afastado:</label> 
-      `;
+
+      // — Label + input com autocomplete via datalist —
+      const lbl = document.createElement('label');
+      lbl.textContent = 'Nome:';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.setAttribute('list', 'eletricistasList');
+      inp.className = 'nomeColaboradorAtestado';
+      inp.placeholder = 'Selecione…';
+      inp.oninput = () => { inp.value = inp.value.toUpperCase(); };
+
+      // — Datas e dias —
+      const lblIni = document.createElement('label');
+      lblIni.textContent = 'Data Início:';
+      const inpIni = document.createElement('input');
+      inpIni.type = 'date';
+      inpIni.className = 'dataInicioAtestado';
+      inpIni.onchange = () => atualizarDiasAtestado(inpIni);
+
+      const lblFim = document.createElement('label');
+      lblFim.textContent = 'Data Fim:';
+      const inpFim = document.createElement('input');
+      inpFim.type = 'date';
+      inpFim.className = 'previsaoRetornoAtestado';
+      inpFim.onchange = () => atualizarDiasAtestado(inpFim);
+
+      const inpDias = document.createElement('input');
+      inpDias.type = 'text';
+      inpDias.readOnly = true;
+      inpDias.className = 'diasAfastado';
+      inpDias.placeholder = 'DIAS AFASTADO';
+      const lblDias = document.createElement('label');
+      lblDias.textContent = 'Total dias afastado:';
+
+      div.append(lbl, inp, lblIni, inpIni, lblFim, inpFim, inpDias, lblDias);
       c.appendChild(div);
       atualizarTotalAtestado();
     }
@@ -827,50 +970,108 @@
       atualizarTotalAtestado();
     }
 
-    // Colaboradores Falta
-    function adicionarColaboradorFalta(){
-      const c=document.getElementById('colaboradoresFalta');
-      const div=document.createElement('div'); div.className='colaborador-falta';
-      div.innerHTML = `
-        <input type="text" class="nomeColaboradorFalta" placeholder="INSIRA NOME COMPLETO" oninput="this.value=this.value.toUpperCase()"> <label>Nome:</label>
-        <input type="date" class="dataFalta" onchange="atualizarTotalFalta()"> <label>Data da falta<label>
-      `;
-      c.appendChild(div); atualizarTotalFalta();
-    }
-    function removerColaboradorFalta(){
-      const c=document.getElementById('colaboradoresFalta');
-      if(c.lastChild) c.removeChild(c.lastChild);
-      atualizarTotalFalta();
-    }
-    function atualizarTotalFalta(){
-      document.getElementById('totalFalta').value =
-        document.querySelectorAll('#colaboradoresFalta .colaborador-falta').length;
+   // --- FALTAS ---
+  function adicionarColaboradorFalta() {
+    const c = document.getElementById('colaboradoresFalta');
+    const div = document.createElement('div');
+    div.className = 'colaborador-falta';
+
+    // Nome (autocomplete via datalist)
+    const lblNome = document.createElement('label');
+    lblNome.textContent = 'Nome:';
+    const inpNome = document.createElement('input');
+    inpNome.type = 'text';
+    inpNome.setAttribute('list','eletricistasList');
+    inpNome.className = 'nomeColaboradorFalta';
+    inpNome.placeholder = 'Selecione…';
+    inpNome.oninput = () => inpNome.value = inpNome.value.toUpperCase();
+
+    // Data da falta
+    const lblData = document.createElement('label');
+    lblData.textContent = 'Data da falta:';
+    const inpData = document.createElement('input');
+    inpData.type = 'date';
+    inpData.className = 'dataFalta';
+    inpData.onchange = atualizarTotalFalta;
+
+    div.append(lblNome, inpNome, lblData, inpData);
+    c.appendChild(div);
+    atualizarTotalFalta();
+  }
+
+  function removerColaboradorFalta() {
+    const c = document.getElementById('colaboradoresFalta');
+    if (c.lastChild) c.removeChild(c.lastChild);
+    atualizarTotalFalta();
+  }
+
+  function atualizarTotalFalta() {
+    document.getElementById('totalFalta').value =
+      document.querySelectorAll('#colaboradoresFalta .colaborador-falta').length;
+  }
+
+        // --- NOVATOS ---
+    function adicionarColaboradorNovato() {
+      const c = document.getElementById('colaboradoresNovato');
+      const div = document.createElement('div');
+      div.className = 'colaborador-novato';
+
+      // Nome (autocomplete via datalist)
+      const lblNome = document.createElement('label');
+      lblNome.textContent = 'Nome:';
+      const inpNome = document.createElement('input');
+      inpNome.type = 'text';
+      inpNome.setAttribute('list','eletricistasList');
+      inpNome.className = 'nomeColaboradorNovato';
+      inpNome.placeholder = 'Selecione…';
+      inpNome.oninput = () => inpNome.value = inpNome.value.toUpperCase();
+
+      // Justificativa / Motivo
+      const lblMot = document.createElement('label');
+      lblMot.textContent = 'Justificativa:';
+      const inpMot = document.createElement('input');
+      inpMot.type = 'text';
+      inpMot.className = 'motivoNovato';
+      inpMot.placeholder = 'DESCREVA DETALHES';
+      inpMot.oninput = () => inpMot.value = inpMot.value.toUpperCase();
+
+      // Previsão de retorno + cálculo de dias
+      const lblRet = document.createElement('label');
+      lblRet.textContent = 'Previsão de Retorno:';
+      const inpRet = document.createElement('input');
+      inpRet.type = 'date';
+      inpRet.className = 'previsaoRetornoNovato';
+      inpRet.onchange = () => atualizarDiasNovato(inpRet);
+
+      const inpDias = document.createElement('input');
+      inpDias.type = 'text';
+      inpDias.readOnly = true;
+      inpDias.className = 'diasNovato';
+      inpDias.placeholder = 'DIAS';
+      const lblDias = document.createElement('label');
+      lblDias.textContent = 'Tempo parado:';
+
+      div.append(lblNome, inpNome, lblMot, inpMot, lblRet, inpRet, inpDias, lblDias);
+      c.appendChild(div);
+      atualizarTotalNovato();
     }
 
-    // Colaboradores Novato
-    function adicionarColaboradorNovato(){
-      const c=document.getElementById('colaboradoresNovato');
-      const div=document.createElement('div'); div.className='colaborador-novato';
-      div.innerHTML = `
-        <input type="text" class="nomeColaboradorNovato" placeholder="INSIRA NOME COMPLETO" oninput="this.value=this.value.toUpperCase()"> <label>Nome:</label>
-        <input type="text" class="motivoNovato" placeholder="DESCREVA DETALHES" oninput="this.value=this.value.toUpperCase()"> <label>Justificativa/Motivo</label>
-        <input type="date" class="previsaoRetornoNovato" onchange="atualizarDiasNovato(this)"> <label>Previsão de Retorno<label>
-        <input type="text" class="diasNovato" readonly placeholder="DIAS" class="readonly"> <label>Tempo parado<label>
-      `;
-      c.appendChild(div); atualizarTotalNovato();
-    }
-    function removerColaboradorNovato(){
-      const c=document.getElementById('colaboradoresNovato');
-      if(c.lastChild) c.removeChild(c.lastChild);
+    function removerColaboradorNovato() {
+      const c = document.getElementById('colaboradoresNovato');
+      if (c.lastChild) c.removeChild(c.lastChild);
       atualizarTotalNovato();
     }
-    function atualizarDiasNovato(el){
-      const retorno=new Date(el.value), hoje=new Date();
-      const diff=Math.ceil((retorno-hoje)/(1000*60*60*24));
-      el.parentElement.querySelector('.diasNovato').value = diff>=0?diff:0;
+
+    function atualizarDiasNovato(el) {
+      const retorno = new Date(el.value);
+      const hoje    = new Date();
+      const diff    = Math.ceil((retorno - hoje) / (1000*60*60*24));
+      const out     = el.parentElement.querySelector('.diasNovato');
+      out.value = diff >= 0 ? diff : 0;
       atualizarTotalNovato();
     }
-    function atualizarTotalNovato(){
+
+    function atualizarTotalNovato() {
       document.getElementById('totalNovato').value =
         document.querySelectorAll('#colaboradoresNovato .colaborador-novato').length;
     }

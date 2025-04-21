@@ -695,7 +695,8 @@
     
     <!-- Botão Salvar PDF -->
     <button class="button-save-pdf" id="save-pdf-button" onclick="savePdf()">Salvar PDF</button>
-    <button class="button-enviarWhatsApp" onclick="handleEnviarWhatsApp()">Encaminhar via WhatsApp</button><br>
+    <button class="button-enviarWhatsApp" onclick="handleEnviarWhatsApp()">Encaminhar via WhatsApp</button>
+    <br>
 
     <br><br>
     <!-- Botão para Reiniciar Sprint (sempre clicável) -->
@@ -1199,6 +1200,7 @@
       let encodedMessage = encodeURIComponent(mensagem);
       window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
       }
+
       
       html2pdf(container, {
           margin: 0,
@@ -1232,6 +1234,25 @@
       // Impede que o clique propague para outras partes (se necessário)
       e.stopPropagation();
     });
+    
+        function handleEnviarWhatsApp() {
+      gerarMensagem(); // Garante que a mensagem está atualizada
+      const mensagem = document.getElementById('mensagem').value.trim();
+
+      if (!mensagem) {
+        alert("A mensagem está vazia. Gere a mensagem antes de enviar.");
+        return;
+      }
+
+      const encodedMessage = encodeURIComponent(mensagem);
+
+      // Tenta abrir WhatsApp Web (desktop) ou app (mobile)
+      const url = `https://wa.me/?text=${encodedMessage}`;
+      window.open(url, '_blank');
+
+      // Exibe popup de confirmação
+      showPopup('encaminhar-popup', 3000);
+    }
     
 
 

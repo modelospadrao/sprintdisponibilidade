@@ -676,7 +676,7 @@
       <button class="button-clear" onclick="removerColaboradorNovato()">Remover</button>
       <div id="colaboradoresNovato"></div>
       <div class="flex">
-        <label for="totalNovato">TOTAL ELETRICISTAS NOVATOS:</label>
+        <label for="totalNovato">TOTAL ELETRICISTAS PARADOS:</label>
         <input type="text" id="totalNovato" readonly class="readonly">
       </div>
     </div>
@@ -750,7 +750,7 @@
       .catch(err => console.error('Erro carregando eletricistas:', err));
   });
     
-    // Turno/Base/Supervisor
+   // Turno/Base/Supervisor
     function setTurno(t){document.getElementById('turno').value=t;document.querySelectorAll('.turno-option').forEach(b=>b.classList.toggle('selected',b.innerText===t));}
     function setBase(base) {
       document.getElementById('base').value = base;
@@ -940,7 +940,7 @@
       const lblDias = document.createElement('label');
       lblDias.textContent = 'Total dias afastado:';
 
-      div.append(lbl, inp, lblIni, inpIni, lblFim, inpFim, inpDias, lblDias);
+      div.append(lbl, inp, lblIni, inpIni, lblFim, inpFim, lblDias, inpDias);
       c.appendChild(div);
       atualizarTotalAtestado();
     }
@@ -1051,7 +1051,7 @@
       const lblDias = document.createElement('label');
       lblDias.textContent = 'Tempo parado:';
 
-      div.append(lblNome, inpNome, lblMot, inpMot, lblRet, inpRet, inpDias, lblDias);
+      div.append(lblNome, inpNome, lblMot, inpMot, lblRet, inpRet, lblDias, inpDias);
       c.appendChild(div);
       atualizarTotalNovato();
     }
@@ -1077,82 +1077,96 @@
     }
 
     // Gerar mensagem de preview
-    function gerarMensagem(){
-      // Dados turno
-      const t = document.getElementById('turno').value;
-      const dInput = document.getElementById('data').value;
-      const d = dInput ? dInput.split('-').reverse().join('/') : '';
-      const b = document.getElementById('base').value;
-      const sup = document.getElementById('supervisor').value || '';
-      // Resumo equipes
-      const rep = document.getElementById('reporteHorario').value;
-      const prev = document.getElementById('previsaoEntradas').value;
-      const camp = document.getElementById('equipesCampo').value;
-      // Em campo
-      const m = document.getElementById('eqpManCorr').value||0;
-      const l = document.getElementById('eqpLinhaEmerg').value||0;
-      const p = document.getElementById('eqpPoda').value||0;
-      // Paradas
-      const par = document.getElementById('equipesParadas').value||0;
-      let msg = '';
-      msg += "---- *DADOS TURNO* ----\n";
-      msg += `*TURNO* (${t})\n*DATA:* ${d}\n*BASE:* ${b}\n*SUPERVISORES:* ${sup}\n\n`;
-      msg += "---- *RESUMO EQUIPES* ----\n";
-      msg += `*REPORTE ÀS* ${rep}\n*PREVISÃO ENTRADAS TOTAL:* (${prev})\n*EQUIPES EM CAMPO:* (${camp})\n\n`;
-      msg += "----- *EM CAMPO* ----\n";
-      msg += `*EQP. MANUTENÇÃO CORRETIVA:* (${m})\n*EQP. LINHA VIVA EMERGENCIAL:* (${l})\n*EQP. PODA:* (${p})\n\n`;
-      msg += "----- *EQUIPES PARADAS* ----\n";
-      msg += `*TOTAL:* (${par})\n\n`;
-      // Eletricistas parados
-      const paras = document.querySelectorAll('#colaboradoresParados .colaborador');
-      msg += "---- *VIAT. PARADAS* ----\n";
-      msg += `*TOTAL* (${paras.length})\n\n`;
-      paras.forEach(c=>{
-        const nome = c.querySelector('.nomeColaborador').value;
-        const mot = c.querySelector('.motivoColaborador').value;
-        msg += `*PLACA:* ${nome}\n*JUSTIFICATIVAS/MOTIVO:* (${mot})\n\n`;
-      });
-      // Atestados
-      const ates = document.querySelectorAll('#colaboradoresAtestado .colaborador-atestado');
-      msg += "---- *ATESTADOS* ----\n";
-      msg += `*TOTAL* (${ates.length})\n\n`;
-      ates.forEach(a=>{
-        const nome   = a.querySelector('.nomeColaboradorAtestado').value;
-        const inicio = a.querySelector('.dataInicioAtestado').value.split('-').reverse().join('/');
-        const dias   = a.querySelector('.diasAfastado').value;
-        const fim    = a.querySelector('.previsaoRetornoAtestado').value.split('-').reverse().join('/');
-        msg += `*NOME:* ${nome}\n`;
-        msg += `*DATA INÍCIO:* ${inicio}\n`;
-        msg += `*DIAS AFASTADO:* ${dias} DIAS\n`;
-        msg += `*PREVISÃO DE RETORNO:* ${fim}\n\n`;
-      });
-      // Faltas
-      const falt = document.querySelectorAll('#colaboradoresFalta .colaborador-falta');
-      msg += "---- *FALTAS* ----\n";
-      msg += `*TOTAL* (${falt.length})\n\n`;
-      falt.forEach(f=>{
-        const nome = f.querySelector('.nomeColaboradorFalta').value;
-        const dia = f.querySelector('.dataFalta').value.split('-').reverse().join('/');
-        msg += `*NOME:* ${nome}\n*DIA:* ${dia}\n\n`;
-      });
-      // Novatos
-      const nov = document.querySelectorAll('#colaboradoresNovato .colaborador-novato');
-      msg += "---- *ELETRICISTAS PARADOS* ----\n";
-      msg += `*TOTAL* (${nov.length})\n\n`;
-      nov.forEach(n=>{
-        const nome = n.querySelector('.nomeColaboradorNovato').value;
-        const mot = n.querySelector('.motivoNovato').value;
-        const ret = n.querySelector('.previsaoRetornoNovato').value.split('-').reverse().join('/');
-        msg += `*NOME:* ${nome}\n*JUSTIFICATIVAS/MOTIVO:* ${mot}\n*PREVISAO PARA RETORNO:* ${ret}\n\n`;
-      });
-      // Tempo de sessão
-      if (globalTimerStart) {
-        const sec = Math.floor((Date.now()-globalTimerStart)/1000);
-        msg += `*TEMPO DA SESSÃO:* ${formatTime(sec)}\n`;
-      }
-      document.getElementById('mensagem').value = msg.trim();
-      showPopup('gerar-popup',1500);
+      function gerarMensagem() {
+    // Dados turno
+    const t      = document.getElementById('turno').value;
+    const dInput = document.getElementById('data').value;
+    const d      = dInput ? dInput.split('-').reverse().join('/') : '';
+    const b      = document.getElementById('base').value;
+    const sup    = document.getElementById('supervisor').value || '';
+
+    // Resumo equipes
+    const rep  = document.getElementById('reporteHorario').value;
+    const prev = document.getElementById('previsaoEntradas').value;
+
+    // Em campo
+    const m      = document.getElementById('eqpManCorr').value   || 0;
+    const l      = document.getElementById('eqpLinhaEmerg').value || 0;
+    const p      = document.getElementById('eqpPoda').value      || 0;
+    const pesada = document.getElementById('eqpPesada').value   || 0;
+
+    // Contagens gerais
+    const camp = document.getElementById('equipesCampo').value;
+    const par  = document.getElementById('equipesParadas').value || 0;
+
+    let msg = '';
+    msg += "---- *DADOS TURNO* ----\n";
+    msg += `*TURNO* (${t})\n*DATA:* ${d}\n*BASE:* ${b}\n*SUPERVISORES:* ${sup}\n\n`;
+
+    msg += "---- *RESUMO EQUIPES* ----\n";
+    msg += `*REPORTE ÀS* ${rep}\n*PREVISÃO ENTRADAS TOTAL:* (${prev})\n*EQUIPES EM CAMPO:* (${camp})\n\n`;
+
+    msg += "----- *EM CAMPO* ----\n";
+    msg += `*EQP. MANUTENÇÃO CORRETIVA:* (${m})\n`;
+    msg += `*EQP. LINHA VIVA EMERGENCIAL:* (${l})\n`;
+    msg += `*EQP. PODA:* (${p})\n`;
+    msg += `*EQP. PESADA:* (${pesada})\n\n`;
+
+    msg += "----- *EQUIPES PARADAS* ----\n";
+    msg += `*TOTAL:* (${par})\n\n`;
+
+    // Eletricistas parados
+    const paras = document.querySelectorAll('#colaboradoresParados .colaborador');
+    msg += "---- *VIATURAS PARADAS* ----\n";
+    msg += `*TOTAL* (${paras.length})\n\n`;
+    paras.forEach(c => {
+      const nome = c.querySelector('.nomeColaborador').value;
+      const mot  = c.querySelector('.motivoColaborador').value;
+      msg += `*PLACA:* ${nome}\n*JUSTIFICATIVA:* ${mot}\n\n`;
+    });
+
+    // Atestados
+    const ates = document.querySelectorAll('#colaboradoresAtestado .colaborador-atestado');
+    msg += "---- *ATESTADOS* ----\n";
+    msg += `*TOTAL* (${ates.length})\n\n`;
+    ates.forEach(a => {
+      const nome   = a.querySelector('.nomeColaboradorAtestado').value;
+      const inicio = a.querySelector('.dataInicioAtestado').value.split('-').reverse().join('/');
+      const dias   = a.querySelector('.diasAfastado').value;
+      const fim    = a.querySelector('.previsaoRetornoAtestado').value.split('-').reverse().join('/');
+      msg += `*NOME:* ${nome}\n*INÍCIO:* ${inicio}\n*DIAS AFASTADO:* ${dias}\n*RETORNO:* ${fim}\n\n`;
+    });
+
+    // Faltas
+    const falt = document.querySelectorAll('#colaboradoresFalta .colaborador-falta');
+    msg += "---- *FALTAS* ----\n";
+    msg += `*TOTAL* (${falt.length})\n\n`;
+    falt.forEach(f => {
+      const nome = f.querySelector('.nomeColaboradorFalta').value;
+      const dia  = f.querySelector('.dataFalta').value.split('-').reverse().join('/');
+      msg += `*NOME:* ${nome}\n*DATA:* ${dia}\n\n`;
+    });
+
+    // Novatos
+    const nov = document.querySelectorAll('#colaboradoresNovato .colaborador-novato');
+    msg += "---- *NOVATOS* ----\n";
+    msg += `*TOTAL* (${nov.length})\n\n`;
+    nov.forEach(n => {
+      const nome = n.querySelector('.nomeColaboradorNovato').value;
+      const mot  = n.querySelector('.motivoNovato').value;
+      const ret  = n.querySelector('.previsaoRetornoNovato').value.split('-').reverse().join('/');
+      msg += `*NOME:* ${nome}\n*JUSTIFICATIVA:* ${mot}\n*PREVISAO RETORNO:* ${ret}\n\n`;
+    });
+
+    // Tempo da sessão
+    if (globalTimerStart) {
+      const sec = Math.floor((Date.now() - globalTimerStart) / 1000);
+      msg += `*TEMPO DA SESSÃO:* ${formatTime(sec)}\n`;
     }
+
+    document.getElementById('mensagem').value = msg.trim();
+    showPopup('gerar-popup', 1500);
+  }
 
     // Copiar e limpar
     function copiarMensagem(){

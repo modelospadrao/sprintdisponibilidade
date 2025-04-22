@@ -585,7 +585,7 @@
         <label for="reporteHorario">REPORTE ÀS:</label>
         <input type="text" id="reporteHorario" maxlength="5" placeholder="HH:MM" oninput="formatarHora(this)">
         <label for="previsaoEntradas">PREVISÃO ENTRADAS:</label>
-        <input type="text" id="previsaoEntradas" maxlength="2" oninput="somenteNumeros(this)">
+        <input type="text" id="previsaoEntradas" maxlength="2" oninput="somenteNumeros(this)" readonly>
       </div>
     </div>
     
@@ -1254,6 +1254,25 @@
       showPopup('encaminhar-popup', 3000);
     }
     
+        // Função para definir o turno e prever a entrada
+    function setTurno(t) {
+      document.getElementById('turno').value = t;
+      document.querySelectorAll('.turno-option').forEach(b => b.classList.toggle('selected', b.innerText === t));
+
+      // Configuração da previsão de entrada conforme o turno
+      let previsao = '';
+      if (t === 'B') {
+        previsao = '22'; // Turno B
+      } else if (t === 'C') {
+        previsao = '14'; // Turno C
+      } else if (t === 'D') {
+        previsao = '06'; // Turno D
+      }
+
+      // Preencher a previsão de entrada e tornar o campo somente leitura
+      document.getElementById('previsaoEntradas').value = previsao;
+      document.getElementById('previsaoEntradas').readOnly = true;
+    }
 
 
   </script>

@@ -608,7 +608,7 @@
         <h3>(Contagem) Equipes em Campo 🚗</h3>
         <label for="equipesCampo"
        style="color: #e63946; font-style: italic; font-weight: bold;">
-          Soma Total:
+          Soma Total entradas:
         </label>
         <input type="text" id="equipesCampo" readonly class="readonly">
       </div>
@@ -616,13 +616,25 @@
 
     <!-- Seção Paradas -->
     <div class="section">
-      <h3>(Contagem) Equipes Paradas 🚧</h3>
+      <h3>(Contagem) Equipes Paradas 🚨</h3>
       <div class="flex">
         <label for="equipesCampo"
        style="color: #e63946; font-style: italic; font-weight: bold;">
-          Subtração Total:
+          Subtração (Previsão X entradas):
         </label>
         <input type="text" id="equipesParadas" readonly class="readonly">
+      </div>
+    </div>
+    
+     <!-- Seção Extras -->
+    <div class="section">
+      <h3>(Contagem) Equipes Extras 🚘</h3>
+      <div class="flex">
+        <label for="equipesExtras"
+           style="color: #e63946; font-style: italic; font-weight: bold;">
+          Diferença (Previsão X entradas):
+        </label>
+        <input type="text" id="equipesExtras" readonly class="readonly">
       </div>
     </div>
     
@@ -840,10 +852,21 @@
       recalcularParadas();
     }
 
-    function recalcularParadas() {
-      const prev  = parseInt(document.getElementById('previsaoEntradas').value, 10) || 0;
-      const campo = parseInt(document.getElementById('equipesCampo').value, 10)    || 0;
-      document.getElementById('equipesParadas').value = prev - campo;
+       function recalcularParadas() {
+      const prev   = parseInt(document.getElementById('previsaoEntradas').value, 10) || 0;
+      const campo  = parseInt(document.getElementById('equipesCampo').value, 10)    || 0;
+      const diff   = prev - campo;
+      const extras = campo - prev;
+
+      if (diff >= 0) {
+        // há equipes paradas ou zero
+        document.getElementById('equipesParadas').value = diff;
+        document.getElementById('equipesExtras').value = '';
+      } else {
+        // não faz sentido paradas negativas: zera esse campo e joga o excesso em “Extras”
+        document.getElementById('equipesParadas').value = '';
+        document.getElementById('equipesExtras').value = extras;
+      }
     }
 
     // Colaboradores Parados
@@ -1099,12 +1122,13 @@
     // Contagens gerais
     const camp = document.getElementById('equipesCampo').value;
     const par  = document.getElementById('equipesParadas').value || 0;
+    const extras = document.getElementById('equipesExtras').value || 0;    
 
     let msg = '';
-    msg += "---- *DADOS TURNO* ----\n";
+    msg += "---- *INFO. TURNO* ----\n";
     msg += `*TURNO* (${t})\n*DATA:* ${d}\n*BASE:* ${b}\n*SUPERVISORES:* ${sup}\n\n`;
 
-    msg += "---- *RESUMO EQUIPES* ----\n";
+    msg += "---- *DADOS* ----\n";
     msg += `*REPORTE ÀS* ${rep}\n*PREVISÃO ENTRADAS TOTAL:* (${prev})\n*EQUIPES EM CAMPO:* (${camp})\n\n`;
 
     msg += "----- *EM CAMPO* ----\n";
@@ -1113,8 +1137,9 @@
     msg += `*EQP. PODA:* (${p})\n`;
     msg += `*EQP. PESADA:* (${pesada})\n\n`;
 
-    msg += "----- *EQUIPES PARADAS* ----\n";
-    msg += `*TOTAL:* (${par})\n\n`;
+    msg += "----- *RESUMO EQUIPES* ----\n";
+    msg += `*TOTAL PARADAS:* (${par})\n`;
+    msg += `*EQUIPES EXTRAS:* (${extras})\n\n`;
 
     // Eletricistas parados
     const paras = document.querySelectorAll('#colaboradoresParados .colaborador');
@@ -1150,7 +1175,7 @@
 
     // Novatos
     const nov = document.querySelectorAll('#colaboradoresNovato .colaborador-novato');
-    msg += "---- *ELETRICISTAS PARADOS* ----\n";
+    msg += "---- *ELETRIC. PARADOS* ----\n";
     msg += `*TOTAL* (${nov.length})\n\n`;
     nov.forEach(n => {
       const nome = n.querySelector('.nomeColaboradorNovato').value;

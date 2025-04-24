@@ -474,6 +474,43 @@
       box-sizing: border-box;
     }
     
+    
+   /* Container geral dos “botões” de contagem */
+    .count-buttons-container {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    /* Cada “botão” de contagem */
+    .count-button {
+      flex: 1;
+      background-color: #000000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-align: center;
+      cursor: default;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.1s;
+    }
+    .count-button:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Rótulo e valor dentro do botão */
+    .count-button .label {
+      display: block;
+      font-size: 25px;
+      font-weight: bold;      /* deixa em negrito */
+    }
+    .count-button .value {
+      display: block;
+      font-size: 34px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -576,70 +613,81 @@
       </div>
     </div>
     <h2 style="color: #e63946; font-size: 22px; text-align: center; margin: 20px 0; border-bottom: 5px solid #e63946;">
-        Preencha Informação geral
-      </h2>
-    <!-- Seção Resumo Equipes -->
-    <div class="section">
-      <h3>📌 Resumo Equipes</h3>
-      <div class="flex">
-        <label for="reporteHorario">REPORTE ÀS:</label>
-        <input type="text" id="reporteHorario" maxlength="5" placeholder="HH:MM" oninput="formatarHora(this)">
-        <label for="previsaoEntradas">PREVISÃO ENTRADAS:</label>
-        <input type="text" id="previsaoEntradas" maxlength="2" oninput="somenteNumeros(this)" readonly>
-      </div>
-    </div>
-    
-    
+  Preencha Informação geral
+</h2>
+<div class="flex">
+  <label for="reporteHorario">⏰ REPORTE ÀS:</label>
+  <input
+    type="text"
+    id="reporteHorario"
+    maxlength="5"
+    placeholder="INSIRA VALOR EM (HH:MM)"
+    oninput="formatarHora(this)"
+  >
+  <label for="previsaoEntradas">🅿️ PREVISÃO ENTRADAS:</label>
+  <input
+    type="text"
+    id="previsaoEntradas"
+    maxlength="2"
+    placeholder="VALOR FIXO COM BASE NO TURNO"
+    oninput="somenteNumeros(this)"
+    readonly
+  >
+</div>
 
-    <!-- Seção Em Campo -->
-    <div class="section">
-      <h3>🚗Detalhes Equipes</h3>
-      <div class="flex">
-        <label for="eqpManCorr">EQP. MANUT. CORRETIVA:</label>
-        <input type="text" id="eqpManCorr" maxlength="2" oninput="recalcularEquipesCampo()">
-        <label for="eqpLinhaEmerg">EQP. LINHA VIVA EMERGENCIA:</label>
-        <input type="text" id="eqpLinhaEmerg" maxlength="2" oninput="recalcularEquipesCampo()">
-        <label for="eqpPoda">EQP. PODA:</label>
-        <input type="text" id="eqpPoda" maxlength="2" oninput="recalcularEquipesCampo()">
-        <!-- NOVO CAMPO -->
-        <label for="eqpPesada">EQP. PESADA:</label>
-        <input type="text" id="eqpPesada" maxlength="2" oninput="recalcularEquipesCampo()">
-  
-  <h2 style="color: #3f0bf7; font-size: 22px; text-align: center; margin: 20px 0; border-bottom: 5px solid #3f0bf7;">
-        Campos Contagem Somente Visualização
-      </h2>
-        <h3>Equipes em Campo 🚗</h3>
-        <label for="equipesCampo"
-       style="color: #3f0bf7; font-style: italic; font-weight: bold;">
-          Soma (Total Entradas):
-        </label>
-        <input type="text" id="equipesCampo" readonly class="readonly">
-      </div>
-    </div>
+<div class="flex">
+  <label for="eqpManCorr">⚡ EQUIPES MANUTENÇÃO CORRETIVA:</label>
+  <input
+    type="text"
+    id="eqpManCorr"
+    maxlength="2"
+    placeholder="INSIRA VALOR"
+    oninput="recalcularEquipesCampo()"
+  >
 
-    <!-- Seção Paradas -->
-    <div class="section">
-      <h3>Equipes Paradas 🚨</h3>
-      <div class="flex">
-        <label for="equipesCampo"
-       style="color: #3f0bf7; font-style: italic; font-weight: bold;">
-          Subtração (Previsão X entradas):
-        </label>
-        <input type="text" id="equipesParadas" readonly class="readonly">
-      </div>
-    </div>
-    
-     <!-- Seção Extras -->
-    <div class="section">
-      <h3>Equipes Extras 🚘</h3>
-      <div class="flex">
-        <label for="equipesExtras"
-           style="color: #3f0bf7; font-style: italic; font-weight: bold;">
-          Diferença (Previsão X entradas):
-        </label>
-        <input type="text" id="equipesExtras" readonly class="readonly">
-      </div>
-    </div>
+  <label for="eqpLinhaEmerg">⚡ EQUIPES LINHA VIVA EMERGENCIA:</label>
+  <input
+    type="text"
+    id="eqpLinhaEmerg"
+    maxlength="2"
+    placeholder="INSIRA VALOR"
+    oninput="recalcularEquipesCampo()"
+  >
+
+  <label for="eqpPoda">🌳 EQUIPES PODA:</label>
+  <input
+    type="text"
+    id="eqpPoda"
+    maxlength="2"
+    placeholder="INSIRA VALOR"
+    oninput="recalcularEquipesCampo()"
+  >
+
+  <!-- NOVO CAMPO -->
+  <label for="eqpPesada">🚛 EQUIPES PESADA:</label>
+  <input
+    type="text"
+    id="eqpPesada"
+    maxlength="2"
+    placeholder="INSIRA VALOR"
+    oninput="recalcularEquipesCampo()"
+  >
+</div>
+
+<div class="count-buttons-container">
+  <div class="count-button">
+    <span class="label">EQP. EM CAMPO 🚗</span>
+    <span id="equipesCampo" class="value">0</span>
+  </div>
+  <div class="count-button">
+    <span class="label">EQP. PARADAS 🚨</span>
+    <span id="equipesParadas" class="value">0</span>
+  </div>
+  <div class="count-button">
+    <span class="label">EQP. EXTRAS 🚘</span>
+    <span id="equipesExtras" class="value">0</span>
+  </div>
+</div>
     
      <h2 style="color: #e63946; font-size: 22px; text-align: center; margin: 20px 0; border-bottom: 5px solid #e63946;">
         Preencha Informação detalhada
@@ -868,33 +916,33 @@
       document.getElementById('supervisor').value = sel;
     }
 
-        // Cálculo equipes em campo & paradas
-    function recalcularEquipesCampo() {
-      const a      = parseInt(document.getElementById('eqpManCorr').value, 10)    || 0;
-      const b      = parseInt(document.getElementById('eqpLinhaEmerg').value, 10) || 0;
-      const c      = parseInt(document.getElementById('eqpPoda').value, 10)      || 0;
-      const pesada = parseInt(document.getElementById('eqpPesada').value, 10)   || 0;
-      const total  = a + b + c + pesada;
-      document.getElementById('equipesCampo').value = total;
-      recalcularParadas();
-    }
+    // Cálculo equipes em campo & paradas
+      function recalcularEquipesCampo() {
+        const a      = parseInt(document.getElementById('eqpManCorr').value, 10)    || 0;
+        const b      = parseInt(document.getElementById('eqpLinhaEmerg').value, 10) || 0;
+        const c      = parseInt(document.getElementById('eqpPoda').value, 10)      || 0;
+        const pesada = parseInt(document.getElementById('eqpPesada').value, 10)   || 0;
+        const total  = a + b + c + pesada;
 
-       function recalcularParadas() {
-      const prev   = parseInt(document.getElementById('previsaoEntradas').value, 10) || 0;
-      const campo  = parseInt(document.getElementById('equipesCampo').value, 10)    || 0;
-      const diff   = prev - campo;
-      const extras = campo - prev;
-
-      if (diff >= 0) {
-        // há equipes paradas ou zero
-        document.getElementById('equipesParadas').value = diff;
-        document.getElementById('equipesExtras').value = '';
-      } else {
-        // não faz sentido paradas negativas: zera esse campo e joga o excesso em “Extras”
-        document.getElementById('equipesParadas').value = '';
-        document.getElementById('equipesExtras').value = extras;
+        // atualiza o span (não mais input)
+        document.getElementById('equipesCampo').textContent = total;
+        recalcularParadas();
       }
-    }
+
+      function recalcularParadas() {
+        const prev   = parseInt(document.getElementById('previsaoEntradas').value, 10) || 0;
+        const campo  = parseInt(document.getElementById('equipesCampo').textContent, 10) || 0;
+        const diff   = prev - campo;
+        const extras = campo - prev;
+
+        if (diff >= 0) {
+          document.getElementById('equipesParadas').textContent = diff;
+          document.getElementById('equipesExtras').textContent = 0;
+        } else {
+          document.getElementById('equipesParadas').textContent = 0;
+          document.getElementById('equipesExtras').textContent = Math.abs(extras);
+        }
+      }
 
     // Colaboradores Parados
          function adicionarColaborador() {
@@ -1146,10 +1194,10 @@
     const p      = document.getElementById('eqpPoda').value      || 0;
     const pesada = document.getElementById('eqpPesada').value   || 0;
 
-    // Contagens gerais
-    const camp = document.getElementById('equipesCampo').value;
-    const par  = document.getElementById('equipesParadas').value || 0;
-    const extras = document.getElementById('equipesExtras').value || 0;    
+    // em vez de .value:
+    const camp   = document.getElementById('equipesCampo').textContent || 0;
+    const par    = document.getElementById('equipesParadas').textContent || 0;
+    const extras = document.getElementById('equipesExtras').textContent || 0;  
 
     let msg = '';
     msg += "---- *INFO. TURNO* ----\n";

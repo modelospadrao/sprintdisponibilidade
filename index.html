@@ -511,6 +511,9 @@
       font-size: 34px;
       font-weight: bold;
     }
+    #update-popup {
+      text-align: left;
+    }
   </style>
 </head>
 <body>
@@ -520,9 +523,26 @@
   <!-- Global Clock -->
   <div id="global-clock"></div>
   
+    <!-- Notas de Atualização -->
+  <div id="update-popup" class="popup">
+    <p>
+      ⚠️ NOTAS DE ATUALIZAÇÃO:<br><br>
+      1️⃣ Texto das notas alinhado à esquerda<br>
+      2️⃣ Botão “Fechar” permanece ativo — fecha as notas e abre o popup de boas-vindas<br>
+      3️⃣ Função disableAll() ajustada para isentar elementos dentro de #update-popup<br>
+      4️⃣ Campo “Equip. Pesada” incluído no cálculo de equipes em campo<br>
+      5️⃣ Seleção múltipla de supervisores com valor refletido no input<br>
+      6️⃣ Cálculo automático de dias para atestados e novatos funcionando<br>
+      7️⃣ Botão “REINICIAR SPRINT!” reativa todos os campos<br>
+      8️⃣ Pop-ups de confirmação para sprint, cópia, PDF e WhatsApp ajustados<br>
+      9️⃣ Preview em tempo real e geração de mensagem consolidada.<br>
+      
+    <button id="closeUpdate" class="yes-button">Fechar</button>
+  </div>
+  
   <!-- Popup de Boas-Vindas -->
   <div id="welcome-popup" class="popup">
-    <p>Bem-vindo!<br>Deseja iniciar o sprint?</p>
+    <p>Bem-vindo!<br>Deseja iniciar o sprint disponibilidade?</p>
     <div class="popup-buttons">
       <button class="yes-button" onclick="startSprint()">Sim</button>
       <button class="no-button" onclick="handleNoSprint()">Não</button>
@@ -777,6 +797,12 @@
   </div>
 
   <script>
+    function closeUpdatePopup() {
+      // Esconde o popup de notas e mostra o de boas-vindas
+      document.getElementById('update-popup').style.display = 'none';
+      document.getElementById('welcome-popup').style.display = 'block';
+    }
+
     
     // Formata segundos para "Xm e Ys" (verifique se já existe antes)
       function formatTime(total) {
@@ -859,7 +885,11 @@
     }
     function disableAll() {
       document.querySelectorAll('input, button').forEach(el => {
-        if (el.id==='reset-button' || el.closest('#welcome-popup')) return;
+        if (
+          el.id === 'reset-button' ||
+          el.closest('#welcome-popup') ||
+          el.closest('#update-popup')    // <<< Isenta os botões do popup de atualização
+        ) return;
         el.disabled = true;
       });
     }
@@ -869,9 +899,13 @@
         el.disabled = false;
       });
     }
-    window.onload = ()=>{
+      window.onload = () => {
       disableAll();
-      document.getElementById('welcome-popup').style.display='block';
+      // Exibe as Notas de Atualização
+      document.getElementById('update-popup').style.display = 'block';
+      // Ativa o evento de fechar
+      document.getElementById('closeUpdate')
+              .addEventListener('click', closeUpdatePopup);
     };
     function startSprint(){
       enableAll();

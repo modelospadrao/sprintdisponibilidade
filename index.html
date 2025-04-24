@@ -636,15 +636,15 @@
   Preencha Informação geral
 </h2>
 <div class="flex">
-  <label for="reporteHorario">⏰ REPORTE ÀS:</label>
+  <label for="reporteHorario">REPORTE ÀS:</label>
   <input
     type="text"
     id="reporteHorario"
     maxlength="5"
     placeholder="INSIRA VALOR EM (HH:MM)"
     oninput="formatarHora(this)"
-  >
-  <label for="previsaoEntradas">🅿️ PREVISÃO ENTRADAS:</label>
+  ><br><br>
+  <label for="previsaoEntradas">PREVISÃO ENTRADAS:</label>
   <input
     type="text"
     id="previsaoEntradas"
@@ -652,46 +652,46 @@
     placeholder="VALOR FIXO COM BASE NO TURNO"
     oninput="somenteNumeros(this)"
     readonly
-  >
+  ><br><br>
 </div>
 
 <div class="flex">
-  <label for="eqpManCorr">⚡ EQUIPES MANUTENÇÃO CORRETIVA:</label>
+  <label for="eqpManCorr">EQUIPES MANUTENÇÃO CORRETIVA:</label>
   <input
     type="text"
     id="eqpManCorr"
     maxlength="2"
     placeholder="INSIRA VALOR"
     oninput="recalcularEquipesCampo()"
-  >
+  ><br><br>
 
-  <label for="eqpLinhaEmerg">⚡ EQUIPES LINHA VIVA EMERGENCIA:</label>
+  <label for="eqpLinhaEmerg">EQUIPES LINHA VIVA EMERGENCIA:</label>
   <input
     type="text"
     id="eqpLinhaEmerg"
     maxlength="2"
     placeholder="INSIRA VALOR"
     oninput="recalcularEquipesCampo()"
-  >
+  ><br><br>
 
-  <label for="eqpPoda">🌳 EQUIPES PODA:</label>
+  <label for="eqpPoda">EQUIPES PODA:</label>
   <input
     type="text"
     id="eqpPoda"
     maxlength="2"
     placeholder="INSIRA VALOR"
     oninput="recalcularEquipesCampo()"
-  >
+  ><br><br>
 
   <!-- NOVO CAMPO -->
-  <label for="eqpPesada">🚛 EQUIPES PESADA:</label>
+  <label for="eqpPesada">EQUIPES PESADA:</label>
   <input
     type="text"
     id="eqpPesada"
     maxlength="2"
     placeholder="INSIRA VALOR"
     oninput="recalcularEquipesCampo()"
-  >
+  ><br><br>
 </div>
 
 <div class="count-buttons-container">

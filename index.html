@@ -730,6 +730,30 @@
 
   <script>
     
+    // Formata segundos para "Xm e Ys" (verifique se já existe antes)
+      function formatTime(total) {
+        const m = Math.floor(total / 60), s = total % 60;
+        let result = "";
+        if (m > 0) result += `${m} ${m === 1 ? "minuto" : "minutos"}` + (s > 0 ? " e " : "");
+        if (s > 0) result += `${s} ${s === 1 ? "segundo" : "segundos"}`;
+        return result;
+      }
+    
+     function formatFullDateTime(date) {
+      const meses = ["janeiro","fevereiro","março","abril","maio","junho",
+                     "julho","agosto","setembro","outubro","novembro","dezembro"];
+      let dia      = date.getDate();
+      let mes      = meses[date.getMonth()];
+      let ano      = date.getFullYear();
+      let horas    = date.getHours();
+      let minutos  = date.getMinutes();
+      let segundos = date.getSeconds();
+      let strHoras   = `${horas} ${horas === 1 ? "hora" : "horas"}`;
+      let strMinutos = `${minutos} ${minutos === 1 ? "minuto" : "minutos"}`;
+      let strSegundos= `${segundos} ${segundos === 1 ? "segundo" : "segundos"}`;
+      return `${dia} de ${mes} de ${ano} às ${strHoras} e ${strMinutos} e ${strSegundos}`;
+    }
+    
        // carrega o JSON e popula a variável eletricistas
     let eletricistas = [];
     window.addEventListener('DOMContentLoaded', () => {
@@ -1102,7 +1126,7 @@
       document.getElementById('totalNovato').value =
         document.querySelectorAll('#colaboradoresNovato .colaborador-novato').length;
     }
-
+    
     // Gerar mensagem de preview
       function gerarMensagem() {
     // Dados turno
@@ -1187,16 +1211,23 @@
       msg += `*NOME:* ${nome}\n*JUSTIFICATIVA:* ${mot}\n*PREVISAO RETORNO:* ${ret}\n\n`;
     });
 
-    // Tempo da sessão
-    if (globalTimerStart) {
-      const sec = Math.floor((Date.now() - globalTimerStart) / 1000);
-      msg += `*TEMPO DA SESSÃO:* ${formatTime(sec)}\n`;
-    }
+      // Tempo da sessão
+      if (globalTimerStart) {
+        const sec = Math.floor((Date.now() - globalTimerStart) / 1000);
+        msg += `*TEMPO DA SESSÃO:* ${formatTime(sec)}\n`;
+      }
 
-    document.getElementById('mensagem').value = msg.trim();
-    showPopup('gerar-popup', 1500);
-  }
+      // Carimbo de data/hora completa
+      const now = new Date();
+      msg += `${formatFullDateTime(now)}`;
 
+      // Exibe no textarea e popup
+      document.getElementById('mensagem').value = msg.trim();
+      showPopup('gerar-popup', 1500);
+    }  // ← Fecha gerarMensagem()
+
+    // Funções auxiliares, todas *fora* de gerarMensagem():
+    
     // Copiar e limpar
     function copiarMensagem(){
       const t = document.getElementById('mensagem');
